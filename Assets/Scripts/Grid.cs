@@ -2,68 +2,96 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Grid : MonoBehaviour
+namespace Pathfinding
 {
-    [SerializeField]
-    private int sizeX = 15;
 
-    [SerializeField]
-    private int sizeZ = 15;
-
-    [SerializeField]
-    private GameObject gridNode;
-
-    [SerializeField]
-    private Vector3 positionOffset;
-
-    [SerializeField]
-    private Vector3 rotation;
-
-    private List<GridNode> gridNodes;
-
-    private void Awake()
+    public class Grid : MonoBehaviour
     {
-        gridNodes = new List<GridNode>();
-    }
+        [SerializeField]
+        private int sizeX = 15;
 
-    [ContextMenu("Build Grid")]
-    public void BuildGrid()
-    {
-        ClearGrid();
+        [SerializeField]
+        private int sizeZ = 15;
 
-        // Build
-        for (int x = 0; x < sizeX; x++)
+        [SerializeField]
+        private GameObject gridNode;
+
+        [SerializeField]
+        private Vector3 positionOffset;
+
+        [SerializeField]
+        private Vector3 rotation;
+
+        [SerializeField]
+        private int obstacleChance = 5;
+
+        private List<GridNode> gridNodes;
+
+        private void Awake()
         {
-            for (int z = 0; z < sizeZ; z++)
+            gridNodes = new List<GridNode>();
+        }
+
+        [ContextMenu("Build")]
+        public void BuildGrid()
+        {
+            ClearGrid();
+
+            // Build
+            for (int x = 0; x < sizeX; x++)
             {
-                Vector3 position = new Vector3(x, 0, z) + positionOffset;
-                Quaternion quaternion = Quaternion.Euler(rotation.x, rotation.y, rotation.z);
+                for (int z = 0; z < sizeZ; z++)
+                {
+                    Vector3 position = new Vector3(x, 0, z) + positionOffset;
+                    Quaternion quaternion = Quaternion.Euler(rotation.x, rotation.y, rotation.z);
 
-                GameObject newGridNode = Instantiate(gridNode, position, quaternion, transform);
-                newGridNode.name = $"{x}_{z}";
+                    GameObject newGridNode = Instantiate(gridNode, position, quaternion, transform);
+                    newGridNode.name = $"{x}_{z}";
 
-                gridNodes.Add(newGridNode.GetComponent<GridNode>());
+                    gridNodes.Add(newGridNode.GetComponent<GridNode>());
+                }
+            }
+
+            System.GC.Collect();
+        }
+
+        private void ClearGrid()
+        {
+            if (gridNodes != null)
+            {
+                for (int i = gridNodes.Count - 1; i >= 0; i--)
+                {
+                    Destroy(gridNodes[i].gameObject);
+                    gridNodes.RemoveAt(i);
+                }
+
+                gridNodes.Clear();
             }
         }
 
-        System.GC.Collect();
-    }
-
-    private void ClearGrid()
-    {
-        if (gridNodes != null)
+        [ContextMenu("Build and Randomize")]
+        public void BuildAndRandomizeGrid()
         {
-            for (int i = gridNodes.Count - 1; i >= 0; i--)
-            {
-                DestroyImmediate(gridNodes[i]);
-            }
-
-            gridNodes.Clear();
+            ClearGrid();
+            BuildGrid();
+            RandomizeGrid();
         }
-    }
 
-    private void OnDestroy()
-    {
-        ClearGrid();
+        [ContextMenu("Randomize")]
+        public void RandomizeGrid()
+        {
+            System.Random random = new System.Random();
+
+            foreach(GridNode gridNode in gridNodes)
+            {
+                int gridType = random.Next(obstacleChance);
+                gridNode.Initialise(gridType == 0 ? NodeTypes.Obstacle : NodeTypes.None);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            ClearGrid();
+        }
     }
 }

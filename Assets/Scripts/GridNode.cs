@@ -2,17 +2,40 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GridNode : MonoBehaviour
+namespace Pathfinding
 {
-    // Start is called before the first frame update
-    void Start()
+    public enum NodeTypes
     {
-        
+        None,
+        Start,
+        Destination,
+        Obstacle
     }
 
-    // Update is called once per frame
-    void Update()
+    public class GridNode : MonoBehaviour
     {
-        
+        private NodeTypes nodeType;
+
+        [SerializeField]
+        private MeshRenderer meshRenderer;
+
+        public void Initialise(NodeTypes nodeType)
+        {
+            switch(nodeType)
+            {
+                case NodeTypes.None:
+                    meshRenderer.material.color = Color.white;
+                    break;
+                case NodeTypes.Start:
+                    meshRenderer.material.color = Color.green;
+                    break;
+                case NodeTypes.Destination:
+                    meshRenderer.material.color = Color.red;
+                    break;
+                case NodeTypes.Obstacle:
+                    meshRenderer.material.color = Color.black;
+                    break;
+            }
+        }
     }
 }
